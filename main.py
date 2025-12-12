@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OneHotEncoder
@@ -10,12 +9,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, classification_report
 
+df = pd.read_csv('customer_churn.csv')
 
-df = pd.read_csv('customer_churn_data.csv')
-X = df.drop(['CustomerID', 'Churn'], axis=1)
-y = df['Churn'] 
+cols_to_drop = ['Names', 'Location', 'Company', 'Onboard_date', 'Churn']
+X = df.drop([c for c in cols_to_drop if c in df.columns], axis=1)
+y = df['Churn']
 
-categorical_cols = ['Gender', 'Contract_Type', 'Payment_Method']
+categorical_cols = []
 numerical_cols = [col for col in X.columns if col not in categorical_cols]
 
 preprocessor = ColumnTransformer(
@@ -23,7 +23,6 @@ preprocessor = ColumnTransformer(
         ('num', 'passthrough', numerical_cols),
         ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols)
     ])
-
 
 rf_regressor = RandomForestRegressor(random_state=42)
 
@@ -35,9 +34,9 @@ pipeline = Pipeline(steps=[
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 param_grid = {
-    'regressor__n_estimators': [50, 100, 200],      
-    'regressor__max_depth': [10, 20, None],         
-    'regressor__min_samples_leaf': [1, 2, 4]        
+    'regressor__n_estimators': [50, 100, 200],
+    'regressor__max_depth': [5, 10, None],
+    'regressor__min_samples_leaf': [1, 2, 4]
 }
 
 print("\nTraining Model and tuning parameters")
@@ -56,7 +55,7 @@ r2 = r2_score(y_test, y_pred_prob)
 
 print(f"Mean Squared Error (MSE): {mse:.4f}")
 print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
-print(f"R2 Score: {r2:.4f} (Higher is better)")
+print(f"R2 Score: {r2:.4f}")
 
 y_pred_class = (y_pred_prob > 0.50).astype(int)
 
@@ -65,10 +64,15 @@ accuracy = accuracy_score(y_test, y_pred_class)
 print(f"Accuracy: {accuracy*100:.2f}%")
 print("\nDetailed Report:")
 print(classification_report(y_test, y_pred_class))
+
 preprocessor_step = best_model.named_steps['preprocessor']
 rf_step = best_model.named_steps['regressor']
-cat_names = preprocessor_step.named_transformers_['cat'].get_feature_names_out(categorical_cols)
-all_feature_names = numerical_cols + list(cat_names)
+
+if categorical_cols:
+    cat_names = preprocessor_step.named_transformers_['cat'].get_feature_names_out(categorical_cols)
+    all_feature_names = numerical_cols + list(cat_names)
+else:
+    all_feature_names = numerical_cols
 
 importances = rf_step.feature_importances_
 
@@ -77,13 +81,13 @@ fi_df = fi_df.sort_values(by='Importance', ascending=False)
 
 plt.figure(figsize=(10, 6))
 sns.barplot(x='Importance', y='Feature', data=fi_df, palette='viridis')
-plt.title('Feature Importance: What drives Churn?')
+plt.title('Feature Importance')
 plt.xlabel('Importance Score')
 plt.tight_layout()
 plt.show()
 
 print("\n--- Example Prediction ---")
-sample_customer = X_test.iloc[0:1] 
+sample_customer = X_test.iloc[0:1]
 true_status = y_test.iloc[0]
 predicted_risk = best_model.predict(sample_customer)[0]
 
