@@ -40,7 +40,7 @@ param_grid = {
     'regressor__min_samples_leaf': [1, 2, 4]        
 }
 
-print("\nTraining Model and tuning parameters... (This may take 1-2 minutes)")
+print("\nTraining Model and tuning parameters")
 grid_search = GridSearchCV(pipeline, param_grid, cv=3, scoring='neg_mean_squared_error', n_jobs=-1)
 grid_search.fit(X_train, y_train)
 
