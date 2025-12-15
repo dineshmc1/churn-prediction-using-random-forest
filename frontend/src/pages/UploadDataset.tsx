@@ -18,7 +18,6 @@ const UploadDataset: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [mode, setMode] = useState<'train' | 'predict'>('train');
 
-    // Config State
     const [config, setConfig] = useState<Config>({
         highThreshold: 0.75,
         mediumThreshold: 0.5,
@@ -27,11 +26,9 @@ const UploadDataset: React.FC = () => {
         recLow: "Monitor usage patterns."
     });
 
-    // Prediction Mode State
     const [uploadedModelId, setUploadedModelId] = useState<string | null>(null);
     const [predictionFileId, setPredictionFileId] = useState<string | null>(null);
 
-    // Save config to local storage on change
     useEffect(() => {
         localStorage.setItem('churnConfig', JSON.stringify(config));
     }, [config]);
@@ -79,8 +76,7 @@ const UploadDataset: React.FC = () => {
             navigate('/predict', {
                 state: {
                     modelId: uploadedModelId,
-                    fileId: predictionFileId, // The file to predict on
-                    // We assume columns match the model. Error handling in backend provided.
+                    fileId: predictionFileId,
                 }
             });
         }
@@ -95,7 +91,6 @@ const UploadDataset: React.FC = () => {
                 Train robust models or simulate scenarios with explainability
             </p>
 
-            {/* Global Configuration Panel */}
             <div className="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-100">
                 <div className="flex items-center mb-4">
                     <Settings className="w-5 h-5 text-gray-400 mr-2" />
@@ -143,7 +138,6 @@ const UploadDataset: React.FC = () => {
                 </div>
             </div>
 
-            {/* Mode Selection */}
             <div className="flex justify-center space-x-4 mb-8">
                 <button
                     onClick={() => setMode('train')}

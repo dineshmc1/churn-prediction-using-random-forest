@@ -10,7 +10,7 @@ class UploadResponse(BaseModel):
 class TrainRequest(BaseModel):
     file_id: str
     target: str
-    task: str  # "classification" or "regression"
+    task: str  
 
 class TrainResponse(BaseModel):
     model_id: str
@@ -19,7 +19,7 @@ class TrainResponse(BaseModel):
 
 class PredictRequest(BaseModel):
     model_id: str
-    file_id: str # We assume user uploads a new file for prediction and we get an ID
+    file_id: str 
 
 class PredictionResponse(BaseModel):
     predictions: List[Any]
@@ -35,14 +35,13 @@ class ExplainResponse(BaseModel):
 
 class SimulateRequest(BaseModel):
     model_id: str
-    features: Dict[str, Any] # Complete set of features for single prediction
+    features: Dict[str, Any] 
 
 class SimulateResponse(BaseModel):
-    prediction: float # probability or value
-    # diff or other info?
+    prediction: float 
 
 class ReportRequest(BaseModel):
     model_id: str
     file_id: str
-    thresholds: Dict[str, float] # e.g., {"high": 0.75, "medium": 0.5}
-    recommendations: Dict[str, str] # e.g., {"high": "Action A", "medium": "Action B"}
+    thresholds: Dict[str, float] 
+    recommendations: Dict[str, str] 

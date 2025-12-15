@@ -46,8 +46,7 @@ def build_pipeline(numeric_features, categorical_features):
     return preprocessor
 
 def clean_data(df: pd.DataFrame, target: str = None):
-    # Basic cleaning if needed, currently handled by pipeline
-    # We might want to drop rows where target is missing if training
+    
     if target and target in df.columns:
         df = df.dropna(subset=[target])
     return df

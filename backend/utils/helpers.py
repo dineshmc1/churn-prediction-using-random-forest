@@ -8,7 +8,6 @@ def generate_id() -> str:
     return str(uuid.uuid4())
 
 def get_file_path(file_id: str) -> str:
-    # Look for file with any extension in uploads dir matching the ID
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
     

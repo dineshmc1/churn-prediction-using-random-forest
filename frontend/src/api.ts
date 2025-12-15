@@ -45,7 +45,7 @@ export const uploadModel = async (file: File) => {
             'Content-Type': 'multipart/form-data',
         },
     });
-    return response.data; // returns { model_id: ... }
+    return response.data;
 };
 
 export const downloadModelUrl = (modelId: string) => {

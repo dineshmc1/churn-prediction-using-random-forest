@@ -20,7 +20,7 @@ app = FastAPI(title="ML Full-Stack App")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all for dev
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,11 +31,9 @@ async def upload_csv(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
     
-    # Read file content
     content = await file.read()
     file_id = save_upload_file(content, file.filename)
     
-    # Load and inspect
     file_path = get_file_path(file_id)
     try:
         df = load_data(file_path)
@@ -57,8 +55,7 @@ async def train(request: TrainRequest):
         raise HTTPException(status_code=404, detail="File not found.")
     
     try:
-        # Generate a model ID
-        model_id = request.file_id + "_" + request.target # Simple ID strategy
+        model_id = request.file_id + "_" + request.target 
         
         metrics, feature_importance = train_model(
             file_path=file_path, 
@@ -79,10 +76,7 @@ async def train(request: TrainRequest):
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(request: PredictRequest):
-    # Depending on how the frontend handles it, we might receive a file_id (already uploaded via upload-csv)
-    # or the frontend might need to upload the file first.
-    # The requirement says "Upload new CSV for prediction".
-    # So the flow is: Upload CSV -> Get ID -> Call /predict with ID and Model ID.
+    
     
     file_path = get_file_path(request.file_id)
     if not file_path:
@@ -91,7 +85,6 @@ async def predict(request: PredictRequest):
     try:
         predictions, result_filename = make_prediction(request.model_id, file_path)
         
-        # Construct download URL (assuming we have a download endpoint)
         download_url = f"/download/{result_filename}"
         
         return PredictionResponse(
@@ -122,14 +115,11 @@ async def upload_model(file: UploadFile = File(...)):
     if not file.filename.endswith(".pkl"):
         raise HTTPException(status_code=400, detail="Only .pkl files are allowed.")
     
-    # We save it to models dir
     model_dir = "backend/models"
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
         
-    # Use filename as ID (stripped) or generate new?
-    # Requirement: "user can save the preprocessor by downloading... and re use it"
-    # Let's keep the filename simple.
+
     
     file_path = os.path.join(model_dir, file.filename)
     with open(file_path, "wb") as buffer:
@@ -146,7 +136,6 @@ async def explain(request: ExplainRequest):
     try:
         feature_importance, plot_filename = generate_shap_explanation(request.model_id, file_path)
         
-        # URL for plot
         plot_url = f"/download/{plot_filename}"
         
         return ExplainResponse(
