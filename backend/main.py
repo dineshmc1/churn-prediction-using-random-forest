@@ -10,6 +10,11 @@ from backend.utils.helpers import save_upload_file, get_file_path, UPLOAD_DIR
 from backend.services.preprocess import load_data, get_column_info
 from backend.services.train import train_model
 from backend.services.predict import make_prediction
+from backend.services.explain import generate_shap_explanation, simulate_prediction, generate_report
+from backend.utils.schema import (
+    UploadResponse, TrainRequest, TrainResponse, PredictRequest, PredictionResponse,
+    ExplainRequest, ExplainResponse, SimulateRequest, SimulateResponse, ReportRequest
+)
 
 app = FastAPI(title="ML Full-Stack App")
 
@@ -104,6 +109,77 @@ async def download_file(filename: str):
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=filename)
     raise HTTPException(status_code=404, detail="File not found")
+
+@app.get("/download-model/{model_id}")
+async def download_model(model_id: str):
+    model_path = f"backend/models/{model_id}.pkl"
+    if os.path.exists(model_path):
+        return FileResponse(model_path, filename=f"{model_id}.pkl")
+    raise HTTPException(status_code=404, detail="Model not found")
+
+@app.post("/upload-model")
+async def upload_model(file: UploadFile = File(...)):
+    if not file.filename.endswith(".pkl"):
+        raise HTTPException(status_code=400, detail="Only .pkl files are allowed.")
+    
+    # We save it to models dir
+    model_dir = "backend/models"
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+        
+    # Use filename as ID (stripped) or generate new?
+    # Requirement: "user can save the preprocessor by downloading... and re use it"
+    # Let's keep the filename simple.
+    
+    file_path = os.path.join(model_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"message": "Model uploaded successfully", "model_id": file.filename.replace(".pkl", "")}
+
+@app.post("/explain", response_model=ExplainResponse)
+async def explain(request: ExplainRequest):
+    file_path = get_file_path(request.file_id)
+    if not file_path:
+        raise HTTPException(status_code=404, detail="File not found.")
+        
+    try:
+        feature_importance, plot_filename = generate_shap_explanation(request.model_id, file_path)
+        
+        # URL for plot
+        plot_url = f"/download/{plot_filename}"
+        
+        return ExplainResponse(
+            summary_plot_url=plot_url,
+            feature_importance=feature_importance
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/simulate", response_model=SimulateResponse)
+async def simulate(request: SimulateRequest):
+    try:
+        prediction = simulate_prediction(request.model_id, request.features)
+        return SimulateResponse(prediction=prediction)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate-report")
+async def report(request: ReportRequest):
+    file_path = get_file_path(request.file_id)
+    if not file_path:
+        raise HTTPException(status_code=404, detail="File not found.")
+        
+    try:
+        report_filename = generate_report(
+            request.model_id, 
+            file_path, 
+            request.thresholds, 
+            request.recommendations
+        )
+        return {"download_url": f"/download/{report_filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def read_root():

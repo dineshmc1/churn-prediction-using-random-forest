@@ -24,3 +24,25 @@ class PredictRequest(BaseModel):
 class PredictionResponse(BaseModel):
     predictions: List[Any]
     download_url: str
+
+class ExplainRequest(BaseModel):
+    model_id: str
+    file_id: str
+
+class ExplainResponse(BaseModel):
+    summary_plot_url: str
+    feature_importance: Dict[str, float]
+
+class SimulateRequest(BaseModel):
+    model_id: str
+    features: Dict[str, Any] # Complete set of features for single prediction
+
+class SimulateResponse(BaseModel):
+    prediction: float # probability or value
+    # diff or other info?
+
+class ReportRequest(BaseModel):
+    model_id: str
+    file_id: str
+    thresholds: Dict[str, float] # e.g., {"high": 0.75, "medium": 0.5}
+    recommendations: Dict[str, str] # e.g., {"high": "Action A", "medium": "Action B"}

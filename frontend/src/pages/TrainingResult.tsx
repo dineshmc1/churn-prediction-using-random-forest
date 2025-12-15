@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MetricsDisplay from '../components/MetricsDisplay';
 import FeatureImportanceChart from '../components/FeatureImportanceChart';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Download } from 'lucide-react';
+import { downloadModelUrl } from '../api';
 
 const TrainingResult: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const state = location.state as any || {};
-    const { modelId, metrics, featureImportance, target, task } = state;
+    const { modelId, metrics, featureImportance, task } = state;
 
     if (!modelId) {
         return <div className="text-center mt-10">No model data found. <a href="/" className="text-blue-600">Go Home</a></div>;
@@ -44,10 +45,18 @@ const TrainingResult: React.FC = () => {
                         <p className="text-blue-700 mb-6">Use your trained model to make predictions on new data.</p>
                         <button
                             onClick={handleGoPredict}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition flex items-center"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition flex items-center mb-4 w-full justify-center"
                         >
                             Go to Prediction <ArrowRight className="ml-2" size={18} />
                         </button>
+
+                        <a
+                            href={downloadModelUrl(modelId)}
+                            className="bg-white border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 transition flex items-center w-full justify-center"
+                        >
+                            <Download className="mr-2" size={18} />
+                            Download Pipeline
+                        </a>
                     </div>
                 </div>
             </div>

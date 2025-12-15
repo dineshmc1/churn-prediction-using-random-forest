@@ -4,5 +4,8 @@ pandas
 scikit-learn
 joblib
 python-multipart
+shap
+matplotlib
+fpdf
 numpy
 pydantic
